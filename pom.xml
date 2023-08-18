@@ -3,4 +3,64 @@
   <groupId>br.com.senai</groupId>
   <artifactId>usuarios-mktplace</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <dependencies>
+	  
+	<dependency>
+		
+	    <groupId>org.postgresql</groupId>
+	    <artifactId>postgresql</artifactId>
+	    <version>42.6.0</version>
+	    
+	</dependency>
+	
+  </dependencies>
+  
+   <build>    
+	    <plugins>
+	      <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-compiler-plugin</artifactId>
+	        <version>3.10.1</version>
+	        <configuration>
+	          <source>19</source>
+	          <target>19</target>
+	        </configuration>
+	      </plugin>
+	      
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-jar-plugin</artifactId>
+			<version>2.4</version>
+			<configuration>
+				<archive>
+					<manifest>
+						<addClasspath>true</addClasspath>
+						<mainClass>br.com.senai.usuariosmktplace.InitApp</mainClass>
+						<classpathPrefix>libs/</classpathPrefix>
+					</manifest>
+				</archive>
+			</configuration>
+		</plugin>
+		
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-dependency-plugin</artifactId>
+			<version>2.5.1</version>
+			<executions>
+				<execution>
+					<id>copiar-libs</id>
+					<phase>package</phase>
+					<goals>
+						<goal>copy-dependencies</goal>
+					</goals>
+					<configuration>
+						<outputDirectory>
+							${project.build.directory}/libs/
+						</outputDirectory>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+	</plugins>
+	</build> 
 </project>
