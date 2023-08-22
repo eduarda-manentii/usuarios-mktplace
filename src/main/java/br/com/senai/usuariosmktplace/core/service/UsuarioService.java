@@ -19,7 +19,46 @@ public class UsuarioService {
 		this.daoUsuario = FactoryDao.getInstance().getDaoUsuario();
 	}
 	
-	public String removerAcentoDo(String nomeCompleto) {
+	public Usuario criarUsuario(String nomeCompleto, String senha) {
+	    if(validarNome(nomeCompleto) == false || validarSenha(senha) == false) {
+			return null;
+	    } else {
+		    String login = gerarLoginPor(nomeCompleto);
+		    String senhaHash = gerarHashDa(senha);
+		    String nome = nomeCompleto; 
+		    Usuario usuarioCadastrado = new Usuario(login, senhaHash, nome);
+		    this.daoUsuario.inserir(usuarioCadastrado);
+		    return usuarioCadastrado;
+	    }
+	}
+	
+	public Usuario alterarUsuario(String login, String nomeCompleto, String senhaAntiga, String senhaNova) {
+		if(validarNome(nomeCompleto) == false || validarSenha(senhaNova) == false) {
+			return null;
+	    } else {
+		    Usuario usuarioExistente = buscarPor(login);
+		    if (usuarioExistente == null) {
+	        System.out.println("Usuário não encontrado.");
+	        return null;
+		    }
+	    
+		    String senhaAntigaHash = gerarHashDa(senhaAntiga);
+		    if (!usuarioExistente.getSenha().equals(senhaAntigaHash)) {
+		        System.out.println("Senha antiga informada não corresponde ao usuário.");
+		        return null;
+		    }
+		    
+		    String senhaNovaHash = gerarHashDa(senhaNova);
+		    usuarioExistente.setSenha(senhaNovaHash);
+		    usuarioExistente.setNomeCompleto(nomeCompleto);
+		    this.daoUsuario.alterar(usuarioExistente);
+		    return usuarioExistente;
+		   }
+	}
+	
+	
+	
+	private String removerAcentoDo(String nomeCompleto) {
 		return Normalizer.normalize(nomeCompleto, 
 				Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
 	}
@@ -99,20 +138,6 @@ public class UsuarioService {
 	    return true;
 	}
 
-	
-	public Usuario criarUsuario(String nomeCompleto, String senha) {
-	    if(validarNome(nomeCompleto) == false || validarSenha(senha) == false) {
-			return null;
-	    } else {
-		    String login = gerarLoginPor(nomeCompleto);
-		    String senhaHash = gerarHashDa(senha);
-		    String nome = nomeCompleto; 
-		    Usuario usuarioCadastrado = new Usuario(login, senhaHash, nome);
-		    this.daoUsuario.inserir(usuarioCadastrado);
-		    return usuarioCadastrado;
-	    }
-	}
-	
 	private Usuario buscarPor(String loginGerado) {
 		Usuario encontrado = daoUsuario.buscarPor(loginGerado);
 		return encontrado;
