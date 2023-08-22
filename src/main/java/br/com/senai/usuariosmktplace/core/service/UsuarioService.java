@@ -82,28 +82,50 @@ public class UsuarioService {
 	}
 
 	private boolean validarSenha(String senha) {
-		if (senha == null || senha.isBlank()) {
-			System.out.println("A senha é obrigatória.");
-			return false;
-		}
-		return true;
+	    if (senha == null || senha.isBlank()) {
+	        System.out.println("A senha é obrigatória.");
+	        return false;
+	    }
+
+	    if (senha.length() < 6 || senha.length() > 15) {
+	        System.out.println("A senha deve ter entre 6 e 15 caracteres.");
+	        return false;
+	    }
+
+	    if (senha.matches("\\s+")) {
+	        System.out.println("A senha não pode conter espaços em branco.");
+	        return false;
+	    }
+
+	    if (!senha.matches(".*\\d.*")) {
+	        System.out.println("A senha deve conter pelo menos um número.");
+	        return false;
+	    }
+
+	    if (!senha.matches(".*[a-zA-Z].*")) {
+	        System.out.println("A senha deve conter pelo menos uma letra.");
+	        return false;
+	    }
+
+	    return true;
 	}
 
 	private boolean validarNome(String nomeCompleto) {
-		boolean isNomeInvalido = nomeCompleto == null || nomeCompleto.isBlank() || nomeCompleto.length() > 120
-				|| nomeCompleto.length() < 5;
+	    nomeCompleto = nomeCompleto.replaceAll("\\s+", ""); 
+	    boolean isNomeInvalido = nomeCompleto == null || nomeCompleto.isEmpty() || nomeCompleto.length() > 120
+	            || nomeCompleto.length() < 5;
 
-		if (isNomeInvalido) {
-			System.out.println("O nome é obrigatório e deve conter sobrenome. Deve conter entre 5 a 50 caracteres.");
-			return false;
-		}
+	    if (isNomeInvalido) {
+	        System.out.println("O nome deve conter entre 5 a 50 caracteres.");
+	        return false;
+	    }
 
-		List<String> partesDoNome = fracionar(nomeCompleto);
-		if (partesDoNome.size() < 2) {
-			System.out.println(("O nome deve conter tanto o nome quanto o sobrenome."));
-			return false;
-		}
-		return true;
+	    List<String> partesDoNome = fracionar(nomeCompleto);
+	    if (partesDoNome.size() < 1) {
+	        System.out.println(("O nome deve conter tanto o nome quanto o sobrenome."));
+	        return false;
+	    }
+	    return true;
 	}
 
 	private Usuario buscarPor(String loginGerado) {
