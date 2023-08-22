@@ -24,8 +24,9 @@ public class UsuarioService {
 				Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
 	}
 	
-	public List<String> fracionar(String nomeCompleto) {
+	private List<String> fracionar(String nomeCompleto) {
 		List<String> nomeFracionado = new ArrayList<String>();
+		nomeCompleto = nomeCompleto.trim();
 		if (nomeCompleto != null && !nomeCompleto.isBlank()) {
 			String[] partesDoNome = nomeCompleto.split(" ");
 			for (String parte : partesDoNome) {
@@ -43,7 +44,7 @@ public class UsuarioService {
 		return nomeFracionado;
 	}
 	
-	public String gerarLoginPor(String nomeCompleto) {
+	private String gerarLoginPor(String nomeCompleto) {
 		nomeCompleto = removerAcentoDo(nomeCompleto);
 		List<String> partesDoNome = fracionar(nomeCompleto);
 		String loginGerado = null;
@@ -67,8 +68,49 @@ public class UsuarioService {
 			return loginGerado;
 	}
 	
-	public String gerarHashDa(String senha) {
+	private String gerarHashDa(String senha) {
 		return new DigestUtils(MessageDigestAlgorithms.MD5).digestAsHex(senha);
+	}
+	
+	private boolean validarSenha(String senha) {
+		if(senha == null || senha.isBlank()) {
+			System.out.println("A senha é obrigatória.");
+			return false;
+		}
+		return true;
+	}
+
+	private boolean validarNome(String nomeCompleto) {
+	    boolean isNomeInvalido = nomeCompleto == null 
+	            || nomeCompleto.isBlank() 
+	            || nomeCompleto.length() > 120 
+	            || nomeCompleto.length() < 5;
+
+	    if (isNomeInvalido) {
+	        System.out.println("O nome é obrigatório e deve conter sobrenome. Deve conter entre 5 a 50 caracteres.");
+	        return false;
+	    }
+
+	    List<String> partesDoNome = fracionar(nomeCompleto);
+	    if (partesDoNome.size() < 2) {
+	        System.out.println(("O nome deve conter tanto o nome quanto o sobrenome."));
+	        return false;
+	    }
+	    return true;
+	}
+
+	
+	public Usuario criarUsuario(String nomeCompleto, String senha) {
+	    if(validarNome(nomeCompleto) == false || validarSenha(senha) == false) {
+			return null;
+	    } else {
+		    String login = gerarLoginPor(nomeCompleto);
+		    String senhaHash = gerarHashDa(senha);
+		    String nome = nomeCompleto; 
+		    Usuario usuarioCadastrado = new Usuario(login, senhaHash, nome);
+		    this.daoUsuario.inserir(usuarioCadastrado);
+		    return usuarioCadastrado;
+	    }
 	}
 	
 	private Usuario buscarPor(String loginGerado) {
