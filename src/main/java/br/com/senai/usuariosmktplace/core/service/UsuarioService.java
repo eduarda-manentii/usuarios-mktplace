@@ -57,7 +57,7 @@ public class UsuarioService {
 			usuarioExistente.setNomeCompleto(nomeCompleto);
 			this.daoUsuario.alterar(usuarioExistente);
 			System.out.println("Nome do usúario e senha alterados com sucesso!\n");
-			String mensagem = "Uma senha foi alterada.";
+			String mensagem = "Olá, " + nomeCompleto + ". A senha de acesso da conta " + login + " foi alterada.";
 			try {
 				EnviarEmail.enviarEmail(mensagem);
 			} catch (IOException e) {
