@@ -20,16 +20,16 @@ public class UsuarioService {
 	}
 
 	public Usuario criarUsuario(String nomeCompleto, String senha) {
-		if (validarNome(nomeCompleto) == false || validarSenha(senha) == false) {
-			return null;
-		} else {
-			String login = gerarLoginPor(nomeCompleto);
-			String senhaHash = gerarHashDa(senha);
-			String nome = nomeCompleto;
-			Usuario usuarioCadastrado = new Usuario(login, senhaHash, nome);
-			this.daoUsuario.inserir(usuarioCadastrado);
-			return usuarioCadastrado;
-		}
+	    if (validarNome(nomeCompleto) == false || validarSenha(senha) == false) {
+	        return null;
+	    } else {
+	        String nomeFormatado = formatarNome(nomeCompleto);
+	        String login = gerarLoginPor(nomeFormatado);
+	        String senhaHash = gerarHashDa(senha);
+	        Usuario usuarioCadastrado = new Usuario(login, senhaHash, nomeFormatado);
+	        this.daoUsuario.inserir(usuarioCadastrado);
+	        return usuarioCadastrado;
+	    }
 	}
 
 	private String removerAcentoDo(String nomeCompleto) {
@@ -79,6 +79,20 @@ public class UsuarioService {
 
 	private String gerarHashDa(String senha) {
 		return new DigestUtils(MessageDigestAlgorithms.MD5).digestAsHex(senha);
+	}
+	
+	private String formatarNome(String nomeCompleto) {
+	    String[] partesDoNome = nomeCompleto.trim().split(" ");
+	    StringBuilder nomeFormatado = new StringBuilder();
+
+	    for (String parte : partesDoNome) {
+	        if (!parte.isEmpty()) {
+	            nomeFormatado.append(Character.toUpperCase(parte.charAt(0)))
+	                        .append(parte.substring(1).toLowerCase()).append(" ");
+	        }
+	    }
+
+	    return nomeFormatado.toString().trim();
 	}
 
 	private boolean validarSenha(String senha) {
