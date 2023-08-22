@@ -5,7 +5,8 @@ import br.com.senai.usuariosmktplace.core.service.UsuarioService;
 public class InitApp {
 
 	public static void main(String[] args) {
-		System.out.println(new UsuarioService().alterarUsuario(".manenti2", "Eduarda manenti ", "0", "2"));
+		System.out.println(new UsuarioService().resetarSenha("eduarda.manenti"));
+		//System.out.println(new UsuarioService().alterarUsuario("eduarda.manenti", "Eduarda manenti ", "3", "3"));
 	}
 
 }
