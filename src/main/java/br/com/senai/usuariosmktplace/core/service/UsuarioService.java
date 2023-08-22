@@ -1,5 +1,6 @@
 package br.com.senai.usuariosmktplace.core.service;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.text.Normalizer;
@@ -12,6 +13,7 @@ import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import br.com.senai.usuariosmktplace.core.dao.DaoUsuario;
 import br.com.senai.usuariosmktplace.core.dao.FactoryDao;
 import br.com.senai.usuariosmktplace.core.domain.Usuario;
+import br.com.senai.usuariosmktplace.core.util.api.EnviarEmail;
 
 public class UsuarioService {
 
@@ -55,6 +57,12 @@ public class UsuarioService {
 			usuarioExistente.setNomeCompleto(nomeCompleto);
 			this.daoUsuario.alterar(usuarioExistente);
 			System.out.println("Nome do usúario e senha alterados com sucesso!\n");
+			String mensagem = "Uma senha foi alterada.";
+			try {
+				EnviarEmail.enviarEmail(mensagem);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			return usuarioExistente;
 		}
 	}
@@ -69,7 +77,6 @@ public class UsuarioService {
 		String senhaNovaHash = gerarHashDa(novaSenha);
 		usuarioExistente.setSenha(senhaNovaHash);
 		this.daoUsuario.alterar(usuarioExistente);
-		// Enviar e-mail com instruções para o usuário
 		return novaSenha;
 	}
 
