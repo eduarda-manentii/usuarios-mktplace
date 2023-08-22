@@ -47,12 +47,21 @@ public class UsuarioService {
 				System.out.println("Senha antiga informada não corresponde ao usuário.");
 				return null;
 			}
-
 			String senhaNovaHash = gerarHashDa(senhaNova);
 			usuarioExistente.setSenha(senhaNovaHash);
 			usuarioExistente.setNomeCompleto(nomeCompleto);
 			this.daoUsuario.alterar(usuarioExistente);
 			return usuarioExistente;
+		}
+	}
+
+	public Usuario buscarUsuarioPor(String login) {
+		Usuario usuarioEncontrado = this.daoUsuario.buscarPor(login);
+		if (usuarioEncontrado != null) {
+			return usuarioEncontrado;
+		} else {
+			System.out.println("Não foi encontrado um usuário com o login informado.");
+			return null;
 		}
 	}
 
