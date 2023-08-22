@@ -1,5 +1,7 @@
 package br.com.senai.usuariosmktplace.core.service;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +52,7 @@ public class UsuarioService {
 			String senhaNovaHash = gerarHashDa(senhaNova);
 			usuarioExistente.setSenha(senhaNovaHash);
 			usuarioExistente.setNomeCompleto(nomeCompleto);
-			this.daoUsuario.alterar(usuarioExistente);
+			System.out.println("Nome do usúario e senha alterados com sucesso!\n");
 			return usuarioExistente;
 		}
 	}
@@ -63,6 +65,27 @@ public class UsuarioService {
 			System.out.println("Não foi encontrado um usuário com o login informado.");
 			return null;
 		}
+	}
+
+	public String resetarSenha(String login) {
+		Usuario usuarioExistente = buscarPor(login);
+		if (usuarioExistente == null) {
+			System.out.println("Usuário não encontrado.");
+			return null;
+		}
+		String novaSenha = gerarSenhaRandom();
+		String senhaNovaHash = gerarHashDa(novaSenha);
+		usuarioExistente.setSenha(senhaNovaHash);
+		this.daoUsuario.alterar(usuarioExistente);
+		return novaSenha;
+	}
+
+	private String gerarSenhaRandom() {
+		SecureRandom secureRandom = new SecureRandom();
+		byte[] randomBytes = new byte[5];
+		secureRandom.nextBytes(randomBytes);
+		String senhaAleatoria = new BigInteger(1, randomBytes).toString(16);
+		return senhaAleatoria;
 	}
 
 	private String removerAcentoDo(String nomeCompleto) {
@@ -168,7 +191,7 @@ public class UsuarioService {
 		}
 
 		List<String> partesDoNome = fracionar(nomeCompleto);
-		if (partesDoNome.size() < 1) {
+		if (partesDoNome.size() < 2) {
 			System.out.println(("O nome deve conter tanto o nome quanto o sobrenome."));
 			return false;
 		}
