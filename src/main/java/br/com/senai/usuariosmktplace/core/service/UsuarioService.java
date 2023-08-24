@@ -7,6 +7,10 @@ import java.util.List;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import br.com.senai.usuariosmktplace.core.dao.DaoUsuario;
 import br.com.senai.usuariosmktplace.core.dao.FactoryDao;
 import br.com.senai.usuariosmktplace.core.domain.Usuario;
@@ -20,16 +24,14 @@ public class UsuarioService {
 	}
 
 	public Usuario criarUsuario(String nomeCompleto, String senha) {
-	    if (validarNome(nomeCompleto) == false || validarSenha(senha) == false) {
-	        return null;
-	    } else {
-	        String nomeFormatado = formatarNome(nomeCompleto);
-	        String login = gerarLoginPor(nomeFormatado);
-	        String senhaHash = gerarHashDa(senha);
-	        Usuario usuarioCadastrado = new Usuario(login, senhaHash, nomeFormatado);
-	        this.daoUsuario.inserir(usuarioCadastrado);
-	        return usuarioCadastrado;
-	    }
+		this.valida(nomeCompleto, senha);
+		String nomeFormatado = formatarNome(nomeCompleto);
+		String login = gerarLoginPor(nomeFormatado);
+		String senhaHash = gerarHashDa(senha);
+		Usuario novoUsuario = new Usuario(login, senhaHash, nomeFormatado);
+		this.daoUsuario.inserir(novoUsuario);
+		Usuario usuarioSalvo = this.daoUsuario.buscarPor(login);
+		return usuarioSalvo;
 	}
 
 	private String removerAcentoDo(String nomeCompleto) {
@@ -78,68 +80,45 @@ public class UsuarioService {
 	}
 
 	private String gerarHashDa(String senha) {
-		return new DigestUtils(MessageDigestAlgorithms.MD5).digestAsHex(senha);
+		return new DigestUtils(MessageDigestAlgorithms.SHA3_256).digestAsHex(senha);
 	}
-	
+
 	private String formatarNome(String nomeCompleto) {
-	    String[] partesDoNome = nomeCompleto.trim().split(" ");
-	    StringBuilder nomeFormatado = new StringBuilder();
+		String[] partesDoNome = nomeCompleto.trim().split(" ");
+		StringBuilder nomeFormatado = new StringBuilder();
 
-	    for (String parte : partesDoNome) {
-	        if (!parte.isEmpty()) {
-	            nomeFormatado.append(Character.toUpperCase(parte.charAt(0)))
-	                        .append(parte.substring(1).toLowerCase()).append(" ");
-	        }
-	    }
+		for (String parte : partesDoNome) {
+			if (!parte.isEmpty()) {
+				nomeFormatado.append(Character.toUpperCase(parte.charAt(0))).append(parte.substring(1).toLowerCase())
+						.append(" ");
+			}
+		}
 
-	    return nomeFormatado.toString().trim();
+		return nomeFormatado.toString().trim();
 	}
 
-	private boolean validarSenha(String senha) {
-	    if (senha == null || senha.isBlank()) {
-	        System.out.println("A senha é obrigatória.");
-	        return false;
-	    }
+	@SuppressWarnings("deprecation")
+	private void valida(String senha) {
+		boolean isSenhaValida = !Strings.isNullOrEmpty(senha) && senha.length() > 5 && senha.length() < 16;
+		Preconditions.checkArgument(isSenhaValida, "A senha é obrigatória e deve ter entre 6 e 15 caracteres.");
 
-	    if (senha.length() < 6 || senha.length() > 15) {
-	        System.out.println("A senha deve ter entre 6 e 15 caracteres.");
-	        return false;
-	    }
+		boolean isContemLetra = CharMatcher.inRange('a', 'z').countIn(senha.toLowerCase()) > 0;
+		boolean isContemNumero = CharMatcher.inRange('0', '9').countIn(senha) > 0;
+		boolean isCaracterInvalido = !CharMatcher.javaLetterOrDigit().matchesAllOf(senha);
 
-	    if (senha.matches("\\s+")) {
-	        System.out.println("A senha não pode conter espaços em branco.");
-	        return false;
-	    }
-
-	    if (!senha.matches(".*\\d.*")) {
-	        System.out.println("A senha deve conter pelo menos um número.");
-	        return false;
-	    }
-
-	    if (!senha.matches(".*[a-zA-Z].*")) {
-	        System.out.println("A senha deve conter pelo menos uma letra.");
-	        return false;
-	    }
-
-	    return true;
+		Preconditions.checkArgument(isContemLetra && isContemNumero && !isCaracterInvalido,
+				"A senha deve conter letras e numeros.");
 	}
 
-	private boolean validarNome(String nomeCompleto) {
-	    nomeCompleto = nomeCompleto.replaceAll("\\s+", ""); 
-	    boolean isNomeInvalido = nomeCompleto == null || nomeCompleto.isEmpty() || nomeCompleto.length() > 120
-	            || nomeCompleto.length() < 5;
-
-	    if (isNomeInvalido) {
-	        System.out.println("O nome deve conter entre 5 a 50 caracteres.");
-	        return false;
-	    }
-
-	    List<String> partesDoNome = fracionar(nomeCompleto);
-	    if (partesDoNome.size() < 1) {
-	        System.out.println(("O nome deve conter tanto o nome quanto o sobrenome."));
-	        return false;
-	    }
-	    return true;
+	private void valida(String nomeCompleto, String senha) {
+		List<String> partesDoNome = fracionar(nomeCompleto);
+		boolean isNomeCompleto = partesDoNome.size() > 1;
+		boolean isNomeValido = !Strings.isNullOrEmpty(nomeCompleto) && isNomeCompleto && nomeCompleto.length() <= 120
+				&& nomeCompleto.length() >= 5;
+		Preconditions.checkArgument(isNomeValido,
+				"O nome é obrigatório nome deve conter entre" + " 5 a 50 caracteres e conter sobrenome também.");
+		nomeCompleto = nomeCompleto.replaceAll("\\s+", "");
+		this.valida(senha);
 	}
 
 	private Usuario buscarPor(String loginGerado) {
