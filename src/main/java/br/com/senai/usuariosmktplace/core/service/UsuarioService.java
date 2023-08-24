@@ -1,7 +1,5 @@
 package br.com.senai.usuariosmktplace.core.service;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,73 +17,6 @@ public class UsuarioService {
 
 	public UsuarioService() {
 		this.daoUsuario = FactoryDao.getInstance().getDaoUsuario();
-	}
-
-	public Usuario criarUsuario(String nomeCompleto, String senha) {
-		if (validarNome(nomeCompleto) == false || validarSenha(senha) == false) {
-			return null;
-		} else {
-			String nomeFormatado = formatarNome(nomeCompleto);
-			String login = gerarLoginPor(nomeFormatado);
-			String senhaHash = gerarHashDa(senha);
-			Usuario usuarioCadastrado = new Usuario(login, senhaHash, nomeFormatado);
-			this.daoUsuario.inserir(usuarioCadastrado);
-			return usuarioCadastrado;
-		}
-	}
-
-	public Usuario alterarUsuario(String login, String nomeCompleto, String senhaAntiga, String senhaNova) {
-		if (validarNome(nomeCompleto) == false || validarSenha(senhaNova) == false) {
-			return null;
-		} else {
-			Usuario usuarioExistente = buscarPor(login);
-			if (usuarioExistente == null) {
-				System.out.println("Usuário não encontrado.");
-				return null;
-			}
-
-			String senhaAntigaHash = gerarHashDa(senhaAntiga);
-			if (!usuarioExistente.getSenha().equals(senhaAntigaHash)) {
-				System.out.println("Senha antiga informada não corresponde ao usuário.");
-				return null;
-			}
-			String senhaNovaHash = gerarHashDa(senhaNova);
-			usuarioExistente.setSenha(senhaNovaHash);
-			usuarioExistente.setNomeCompleto(nomeCompleto);
-			System.out.println("Nome do usúario e senha alterados com sucesso!\n");
-			return usuarioExistente;
-		}
-	}
-
-	public Usuario buscarUsuarioPor(String login) {
-		Usuario usuarioEncontrado = this.daoUsuario.buscarPor(login);
-		if (usuarioEncontrado != null) {
-			return usuarioEncontrado;
-		} else {
-			System.out.println("Não foi encontrado um usuário com o login informado.");
-			return null;
-		}
-	}
-
-	public String resetarSenha(String login) {
-		Usuario usuarioExistente = buscarPor(login);
-		if (usuarioExistente == null) {
-			System.out.println("Usuário não encontrado.");
-			return null;
-		}
-		String novaSenha = gerarSenhaRandom();
-		String senhaNovaHash = gerarHashDa(novaSenha);
-		usuarioExistente.setSenha(senhaNovaHash);
-		this.daoUsuario.alterar(usuarioExistente);
-		return novaSenha;
-	}
-
-	private String gerarSenhaRandom() {
-		SecureRandom secureRandom = new SecureRandom();
-		byte[] randomBytes = new byte[5];
-		secureRandom.nextBytes(randomBytes);
-		String senhaAleatoria = new BigInteger(1, randomBytes).toString(16);
-		return senhaAleatoria;
 	}
 
 	private String removerAcentoDo(String nomeCompleto) {
@@ -135,67 +66,6 @@ public class UsuarioService {
 
 	private String gerarHashDa(String senha) {
 		return new DigestUtils(MessageDigestAlgorithms.MD5).digestAsHex(senha);
-	}
-
-	private String formatarNome(String nomeCompleto) {
-		String[] partesDoNome = nomeCompleto.trim().split(" ");
-		StringBuilder nomeFormatado = new StringBuilder();
-
-		for (String parte : partesDoNome) {
-			if (!parte.isEmpty()) {
-				nomeFormatado.append(Character.toUpperCase(parte.charAt(0))).append(parte.substring(1).toLowerCase())
-						.append(" ");
-			}
-		}
-
-		return nomeFormatado.toString().trim();
-	}
-
-	private boolean validarSenha(String senha) {
-		if (senha == null || senha.isBlank()) {
-			System.out.println("A senha é obrigatória.");
-			return false;
-		}
-
-		if (senha.length() < 6 || senha.length() > 15) {
-			System.out.println("A senha deve ter entre 6 e 15 caracteres.");
-			return false;
-		}
-
-		if (senha.matches("\\s+")) {
-			System.out.println("A senha não pode conter espaços em branco.");
-			return false;
-		}
-
-		if (!senha.matches(".*\\d.*")) {
-			System.out.println("A senha deve conter pelo menos um número.");
-			return false;
-		}
-
-		if (!senha.matches(".*[a-zA-Z].*")) {
-			System.out.println("A senha deve conter pelo menos uma letra.");
-			return false;
-		}
-
-		return true;
-	}
-
-	private boolean validarNome(String nomeCompleto) {
-		nomeCompleto = nomeCompleto.replaceAll("\\s+", "");
-		boolean isNomeInvalido = nomeCompleto == null || nomeCompleto.isEmpty() || nomeCompleto.length() > 120
-				|| nomeCompleto.length() < 5;
-
-		if (isNomeInvalido) {
-			System.out.println("O nome deve conter entre 5 a 50 caracteres.");
-			return false;
-		}
-
-		List<String> partesDoNome = fracionar(nomeCompleto);
-		if (partesDoNome.size() < 2) {
-			System.out.println(("O nome deve conter tanto o nome quanto o sobrenome."));
-			return false;
-		}
-		return true;
 	}
 
 	private Usuario buscarPor(String loginGerado) {
