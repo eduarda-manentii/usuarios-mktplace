@@ -2,39 +2,23 @@ package br.com.senai.usuariosmktplace.core.domain;
 
 import java.util.Objects;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class Usuario {
 
+	@Getter @Setter
 	private String login;
+	
+	@Getter @Setter
 	private String senha;
+	
+	@Getter @Setter
 	private String nomeCompleto;
 	
 	public Usuario(String login, String senha, String nomeCompleto) {
 		this.login = login;
 		this.senha = senha;
-		this.nomeCompleto = nomeCompleto;
-	}
-
-	public String getLogin() {
-		return login;
-	}
-
-	public void setLogin(String login) {
-		this.login = login;
-	}
-
-	public String getSenha() {
-		return senha;
-	}
-
-	public void setSenha(String senha) {
-		this.senha = senha;
-	}
-
-	public String getNomeCompleto() {
-		return nomeCompleto;
-	}
-
-	public void setNomeCompleto(String nomeCompleto) {
 		this.nomeCompleto = nomeCompleto;
 	}
 
