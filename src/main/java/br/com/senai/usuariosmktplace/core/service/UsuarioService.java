@@ -40,7 +40,7 @@ public class UsuarioService {
 
 		this.valida(nomeCompleto, senhaNova);
 	    Usuario usuarioExistente = buscarPor(login);
-	    Preconditions.checkNotNull(usuarioExistente, "Não foi encontrdao um usuário ao login informado.");
+	    Preconditions.checkNotNull(usuarioExistente, "Não foi encontrado um usuário ao login informado.");
     
 	    String senhaAntigaCriptografada = gerarHashDa(senhaAntiga);
 	    boolean isSenhaValida = senhaAntigaCriptografada.equals(usuarioExistente.getSenha());
