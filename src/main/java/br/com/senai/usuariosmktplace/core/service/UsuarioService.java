@@ -53,6 +53,15 @@ public class UsuarioService {
 	    this.daoUsuario.alterar(usuarioExistente);
 	    return usuarioExistente;
 	}
+	
+	
+	public Usuario buscarUsuarioPor(String login) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(login), "O login é obrigatório.");
+		Usuario usuarioEncontrado = this.daoUsuario.buscarPor(login);
+		Preconditions.checkNotNull(usuarioEncontrado, "Não foi encontrado usuário vinculado ao login informado.");
+		return usuarioEncontrado;
+	}
+	
 
 	private String removerAcentoDo(String nomeCompleto) {
 		return Normalizer.normalize(nomeCompleto, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
@@ -86,7 +95,6 @@ public class UsuarioService {
 				if (loginGerado.length() > 40) {
 					loginGerado = loginGerado.substring(0, 40);
 				}
-				
 				loginGerado = partesDoNome.get(0) + "." + partesDoNome.get(i);
 				usuarioEncontrado = buscarPor(loginGerado);
 				if (usuarioEncontrado == null) {
@@ -111,14 +119,12 @@ public class UsuarioService {
 	private String formatarNome(String nomeCompleto) {
 		String[] partesDoNome = nomeCompleto.trim().split(" ");
 		StringBuilder nomeFormatado = new StringBuilder();
-
 		for (String parte : partesDoNome) {
 			if (!parte.isEmpty()) {
 				nomeFormatado.append(Character.toUpperCase(parte.charAt(0))).append(parte.substring(1).toLowerCase())
 						.append(" ");
 			}
 		}
-
 		return nomeFormatado.toString().trim();
 	}
 
