@@ -7,6 +7,10 @@ import java.util.List;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import br.com.senai.usuariosmktplace.core.dao.DaoUsuario;
 import br.com.senai.usuariosmktplace.core.dao.FactoryDao;
 import br.com.senai.usuariosmktplace.core.domain.Usuario;
@@ -20,27 +24,43 @@ public class UsuarioService {
 	}
 
 	public Usuario criarUsuario(String nomeCompleto, String senha) {
-		if (validarNome(nomeCompleto) == false || validarSenha(senha) == false) {
-			return null;
-		} else {
-			String login = gerarLoginPor(nomeCompleto);
-			String senhaHash = gerarHashDa(senha);
-			String nome = nomeCompleto;
-			Usuario usuarioCadastrado = new Usuario(login, senhaHash, nome);
-			this.daoUsuario.inserir(usuarioCadastrado);
-			return usuarioCadastrado;
-		}
+		valida(nomeCompleto, senha);
+		String login = gerarLoginPor(nomeCompleto);
+		String senhaHash = gerarHashDa(senha);
+		String nome = nomeCompleto;
+		Usuario usuarioCadastrado = new Usuario(login, senhaHash, nome);
+		this.daoUsuario.inserir(usuarioCadastrado);
+		return usuarioCadastrado;
+	}
+
+	public Usuario alterarUsuarioPor(String login, String nomeCompleto, String senhaAntiga, String senhaNova) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(login), "O login é obrigatório para atualização.");
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(senhaAntiga), "A senha atual é obrigatória para atualização.");
+
+		this.valida(nomeCompleto, senhaNova);
+	    Usuario usuarioExistente = buscarPor(login);
+	    Preconditions.checkNotNull(usuarioExistente, "Não foi encontrado um usuário ao login informado.");
+    
+	    String senhaAntigaCriptografada = gerarHashDa(senhaAntiga);
+	    boolean isSenhaValida = senhaAntigaCriptografada.equals(usuarioExistente.getSenha());
+	    Preconditions.checkArgument(isSenhaValida, "Senha antiga informada não corresponde ao usuário.");
+	    Preconditions.checkArgument(!senhaAntiga.equals(senhaNova), "A senha nova não pode ser igual a anterior.");
+	    
+	    String senhaNovaHash = gerarHashDa(senhaNova);
+	    usuarioExistente.setSenha(senhaNovaHash);
+	    usuarioExistente.setNomeCompleto(nomeCompleto);
+	    this.daoUsuario.alterar(usuarioExistente);
+	    return usuarioExistente;
 	}
 	
+	
 	public Usuario buscarUsuarioPor(String login) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(login), "O login é obrigatório.");
 		Usuario usuarioEncontrado = this.daoUsuario.buscarPor(login);
-		if(usuarioEncontrado != null) {
-			return usuarioEncontrado;
-		} else {
-			System.out.println("Não foi encontrado um usuário com o login informado.");
-			return null;
-		}
+		Preconditions.checkNotNull(usuarioEncontrado, "Não foi encontrado usuário vinculado ao login informado.");
+		return usuarioEncontrado;
 	}
+	
 
 	private String removerAcentoDo(String nomeCompleto) {
 		return Normalizer.normalize(nomeCompleto, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
@@ -48,8 +68,8 @@ public class UsuarioService {
 
 	private List<String> fracionar(String nomeCompleto) {
 		List<String> nomeFracionado = new ArrayList<String>();
-		nomeCompleto = nomeCompleto.trim();
-		if (nomeCompleto != null && !nomeCompleto.isBlank()) {
+		if (Strings.isNullOrEmpty(nomeCompleto)) {
+			nomeCompleto = nomeCompleto.trim();
 			String[] partesDoNome = nomeCompleto.split(" ");
 			for (String parte : partesDoNome) {
 				boolean isNaoContemArtigo = !(parte.equalsIgnoreCase("de") || parte.equalsIgnoreCase("e")
@@ -70,6 +90,11 @@ public class UsuarioService {
 		Usuario usuarioEncontrado = null;
 		if (!partesDoNome.isEmpty()) {
 			for (int i = 1; i < partesDoNome.size(); i++) {
+				
+				if (loginGerado.length() > 40) {
+					loginGerado = loginGerado.substring(0, 40);
+				}
+				
 				loginGerado = partesDoNome.get(0) + "." + partesDoNome.get(i);
 				usuarioEncontrado = buscarPor(loginGerado);
 				if (usuarioEncontrado == null) {
@@ -88,32 +113,31 @@ public class UsuarioService {
 	}
 
 	private String gerarHashDa(String senha) {
-		return new DigestUtils(MessageDigestAlgorithms.MD5).digestAsHex(senha);
+		return new DigestUtils(MessageDigestAlgorithms.SHA3_256).digestAsHex(senha);
 	}
 
-	private boolean validarSenha(String senha) {
-		if (senha == null || senha.isBlank()) {
-			System.out.println("A senha é obrigatória.");
-			return false;
-		}
-		return true;
+	@SuppressWarnings("deprecation")
+	private void valida(String senha) {
+		boolean isSenhaValida = !Strings.isNullOrEmpty(senha) && senha.length() > 5 && senha.length() < 16;
+		Preconditions.checkArgument(isSenhaValida, "A senha é obrigatória e deve ter entre 6 e 15 caracteres.");
+
+		boolean isContemLetra = CharMatcher.inRange('a', 'z').countIn(senha.toLowerCase()) > 0;
+		boolean isContemNumero = CharMatcher.inRange('0', '9').countIn(senha) > 0;
+		boolean isCaracterInvalido = !CharMatcher.javaLetterOrDigit().matchesAllOf(senha);
+
+		Preconditions.checkArgument(isContemLetra && isContemNumero && !isCaracterInvalido,
+				"A senha deve conter letras e numeros.");
 	}
 
-	private boolean validarNome(String nomeCompleto) {
-		boolean isNomeInvalido = nomeCompleto == null || nomeCompleto.isBlank() || nomeCompleto.length() > 120
-				|| nomeCompleto.length() < 5;
-
-		if (isNomeInvalido) {
-			System.out.println("O nome é obrigatório e deve conter sobrenome. Deve conter entre 5 a 50 caracteres.");
-			return false;
-		}
-
+	private void valida(String nomeCompleto, String senha) {
 		List<String> partesDoNome = fracionar(nomeCompleto);
-		if (partesDoNome.size() < 2) {
-			System.out.println(("O nome deve conter tanto o nome quanto o sobrenome."));
-			return false;
-		}
-		return true;
+		boolean isNomeCompleto = partesDoNome.size() > 1;
+		boolean isNomeValido = !Strings.isNullOrEmpty(nomeCompleto) && isNomeCompleto && nomeCompleto.length() <= 120
+				&& nomeCompleto.length() >= 5;
+		Preconditions.checkArgument(isNomeValido,
+				"O nome é obrigatório nome deve conter entre" + " 5 a 50 caracteres e conter sobrenome também.");
+		nomeCompleto = nomeCompleto.replaceAll("\\s+", "");
+		this.valida(senha);
 	}
 
 	private Usuario buscarPor(String loginGerado) {
