@@ -62,6 +62,11 @@ public class UsuarioService {
 		Usuario usuarioEncontrado = null;
 		if (!partesDoNome.isEmpty()) {
 			for (int i = 1; i < partesDoNome.size(); i++) {
+				
+				if (loginGerado.length() > 40) {
+					loginGerado = loginGerado.substring(0, 40);
+				}
+				
 				loginGerado = partesDoNome.get(0) + "." + partesDoNome.get(i);
 				usuarioEncontrado = buscarPor(loginGerado);
 				if (usuarioEncontrado == null) {
