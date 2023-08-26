@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
@@ -14,13 +16,19 @@ import com.google.common.base.Strings;
 import br.com.senai.usuariosmktplace.core.dao.DaoUsuario;
 import br.com.senai.usuariosmktplace.core.dao.FactoryDao;
 import br.com.senai.usuariosmktplace.core.domain.Usuario;
+import jakarta.annotation.PostConstruct;
 
+@Service
 public class UsuarioService {
 
 	private DaoUsuario daoUsuario;
 
-	public UsuarioService() {
-		this.daoUsuario = FactoryDao.getInstance().getDaoUsuario();
+	@Autowired
+	private FactoryDao factoryDao;
+	
+	@PostConstruct
+	public void inicializar() {
+		this.daoUsuario = factoryDao.getDaoUsuario();
 	}
 
 	public Usuario criarUsuario(String nomeCompleto, String senha) {
