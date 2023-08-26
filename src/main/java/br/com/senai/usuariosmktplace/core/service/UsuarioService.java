@@ -1,5 +1,7 @@
 package br.com.senai.usuariosmktplace.core.service;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +63,16 @@ public class UsuarioService {
 	    this.daoUsuario.alterar(usuarioExistente);
 	    return usuarioExistente;
 	}
-	
+
+	public String resetarSenha(String login) {
+		Usuario usuarioExistente = buscarPor(login);
+		Preconditions.checkNotNull(usuarioExistente, "Usuário não encontrado.");
+		String novaSenha = gerarSenhaRandom();
+		String senhaNovaHash = gerarHashDa(novaSenha);
+		usuarioExistente.setSenha(senhaNovaHash);
+		this.daoUsuario.alterar(usuarioExistente);
+		return novaSenha;
+	}
 	
 	public Usuario buscarUsuarioPor(String login) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(login), "O login é obrigatório.");
@@ -69,7 +80,14 @@ public class UsuarioService {
 		Preconditions.checkNotNull(usuarioEncontrado, "Não foi encontrado usuário vinculado ao login informado.");
 		return usuarioEncontrado;
 	}
-	
+
+	private String gerarSenhaRandom() {
+		SecureRandom secureRandom = new SecureRandom();
+		byte[] randomBytes = new byte[5];
+		secureRandom.nextBytes(randomBytes);
+		String senhaAleatoria = new BigInteger(1, randomBytes).toString(16);
+		return senhaAleatoria;
+	}
 
 	private String removerAcentoDo(String nomeCompleto) {
 		return Normalizer.normalize(nomeCompleto, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
