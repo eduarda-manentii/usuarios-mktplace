@@ -30,7 +30,7 @@ public class DaoPostgresUsuario implements DaoUsuario {
 			ps.setString(3, usuario.getSenha());
 			ps.execute();
 		} catch (Exception e) {
-			throw new IllegalArgumentException("Ocorreu um erro ao inserir um" + "usuarios. Motivo: " + e.getMessage());
+			throw new IllegalArgumentException("Ocorreu um erro ao inserir um " + "usuario. Motivo: " + e.getMessage());
 		} finally {
 			ManagerDb.getInstance().fechar(ps);
 		}
