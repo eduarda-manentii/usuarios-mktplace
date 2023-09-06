@@ -1,5 +1,7 @@
 package br.com.senai.usuariosmktplace.entity;
 
+import org.springframework.stereotype.Component;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -13,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Component
 @AllArgsConstructor @NoArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @Table(name = "usuarios")
@@ -26,7 +29,6 @@ public class Usuario {
 	private String login;
 	
 	@NotBlank(message = "A senha é obrigatória.")
-	@Size(min = 6, max = 15, message = "A senha deve conter entre 6 a 15 caracteres.")
 	@Column(name = "senha")
 	private String senha;
 	
